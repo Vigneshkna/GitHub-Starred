@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 Widget shimmer(BuildContext context) {
-  return Expanded(
-      child: Shimmer.fromColors(
+  return  Shimmer.fromColors(
     baseColor: Colors.grey[300]!,
     highlightColor: Colors.grey[100]!,
     child: ListView.builder(
@@ -21,5 +20,5 @@ Widget shimmer(BuildContext context) {
         );
       },
     ),
-  ));
+  );
 }

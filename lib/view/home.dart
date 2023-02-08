@@ -1,4 +1,9 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,8 +20,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late HomeBloc _homeBloc;
+  late StreamSubscription subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
+
   @override
   void initState() {
+    getConnectivity();
     _homeBloc = BlocProvider.of<HomeBloc>(context);
     _homeBloc.add(InitHome());
 
@@ -26,9 +36,19 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _homeBloc.close();
+    subscription.cancel();
     super.dispose();
   }
-
+  getConnectivity() =>
+      subscription = Connectivity().onConnectivityChanged.listen(
+            (ConnectivityResult result) async {
+          isDeviceConnected = await InternetConnectionChecker().hasConnection;
+          if (!isDeviceConnected && isAlertSet == false) {
+            showDialogBox();
+            setState(() => isAlertSet = true);
+          }
+        },
+      );
   @override
   Widget build(BuildContext context) {
     final loadRepos = BlocBuilder<HomeBloc, HomeState>(
@@ -36,9 +56,9 @@ class _HomePageState extends State<HomePage> {
         if (state.status == 'Success' && state.gitRsp!.totalCount! > 0) {
           return scrollable(context, state.gitRsp!);
         } else if (state.status == 'Loading') {
-          return Center(child: shimmer(context));
+          return shimmer(context);
         } else if (state.status == 'Init') {
-          return Center(child: shimmer(context));
+          return shimmer(context);
         } else {
           return Container();
         }
@@ -62,4 +82,27 @@ class _HomePageState extends State<HomePage> {
           )),
     );
   }
+
+  showDialogBox() => showCupertinoDialog<String>(
+    context: context,
+    builder: (BuildContext context) => CupertinoAlertDialog(
+      title: const Text('No Connection'),
+      content: const Text('Please check your internet connectivity'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () async {
+            Navigator.pop(context, 'Cancel');
+            setState(() => isAlertSet = false);
+            isDeviceConnected =
+            await InternetConnectionChecker().hasConnection;
+            if (!isDeviceConnected && isAlertSet == false) {
+              showDialogBox();
+              setState(() => isAlertSet = true);
+            }
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }

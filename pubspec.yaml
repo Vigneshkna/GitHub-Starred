@@ -52,6 +52,9 @@ dev_dependencies:
   google_fonts:
   shimmer:
   equatable:
+  permission_handler:
+  internet_connection_checker:
+  connectivity_plus:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
